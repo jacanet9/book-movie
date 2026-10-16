@@ -1,4 +1,6 @@
 // Authentication & Official Google OAuth (Google Identity Services)
+import { showToast } from '../utils/notification.js';
+
 export const SUPERADMIN_EMAILS = ['674295049@parichat.skru.ac.th'];
 export const ADMIN_EMAILS = ['674295049@parichat.skru.ac.th', 'seree999@gmail.com'];
 
@@ -206,7 +208,7 @@ class AuthService {
             const user = this.handleGoogleCredential(response.credential);
             if (onSuccess) onSuccess(user);
           } catch (err) {
-            alert("Google Sign-In Error: " + err.message);
+            showToast("Google Sign-In Error: " + err.message, "error");
           }
         },
         auto_select: false,

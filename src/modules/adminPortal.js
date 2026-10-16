@@ -1,6 +1,7 @@
 // Admin Management & Analytics Portal Component
 import { bookingEngine } from './bookingEngine.js';
 import { renderTicketPass } from './ticketGenerator.js';
+import { showToast, showModal } from '../utils/notification.js';
 
 export function renderAdminPortal(containerElement) {
   const movies = bookingEngine.movies;
@@ -308,10 +309,15 @@ export function renderAdminPortal(containerElement) {
     });
 
     if (result.success) {
-      alert("✅ เพิ่มรอบฉายสำเร็จ!");
+      showToast("เพิ่มรอบฉายสำเร็จ!", "success");
       renderAdminPortal(containerElement);
     } else {
-      alert("⚠️ " + result.error);
+      showModal({
+        title: "เวลาฉายซ้ำซ้อน",
+        message: result.error,
+        type: "warning",
+        confirmText: "เข้าใจแล้ว"
+      });
     }
   });
 
@@ -331,7 +337,7 @@ export function renderAdminPortal(containerElement) {
       synopsis: fd.get('synopsis'),
       format: ["IMAX 3D", "4K Digital"]
     });
-    alert("✅ บันทึกภาพยนตร์ใหม่สำเร็จ!");
+    showToast("บันทึกภาพยนตร์ใหม่สำเร็จ!", "success");
     renderAdminPortal(containerElement);
   });
 

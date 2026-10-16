@@ -7,6 +7,7 @@ import { renderAdminPortal } from './modules/adminPortal.js';
 import { getAvailableDates } from './data/mockData.js';
 import { generateQRCodeUrl } from './utils/qrHelper.js';
 import { authService, ADMIN_EMAILS } from './modules/authService.js';
+import { showToast, showModal, showAuthRequiredModal } from './utils/notification.js';
 
 // DOM Elements
 const customerPortalView = document.getElementById('customer-portal-view');
@@ -92,7 +93,12 @@ function initApp() {
 
       case 'HOLD_EXPIRED':
         holdTimerContainer.style.display = 'none';
-        alert('⚠️ หมดเวลาล็อกที่นั่ง 10 นาทีแล้ว! ระบบทำการปลดล็อกที่นั่งให้ผู้อื่นเลือกแล้ว');
+        showModal({
+          title: 'หมดเวลาล็อกที่นั่ง',
+          message: 'หมดเวลาล็อกที่นั่ง 10 นาทีแล้ว ระบบทำการปลดล็อกที่นั่งให้ผู้อื่นเลือกแล้ว',
+          type: 'warning',
+          confirmText: 'ตกลง'
+        });
         bookingModalOverlay.style.display = 'none';
         checkoutModalOverlay.style.display = 'none';
         break;
@@ -119,9 +125,9 @@ function openOAuthModal() {
   authService.initGoogleIdentityButton('real-google-btn-container', (user) => {
     oauthModalOverlay.style.display = 'none';
     if (user.isAdmin) {
-      alert(`✅ ยินดีต้อนรับผู้ดูแลระบบ: ${user.name} (${user.email})`);
+      showToast(`👑 ยินดีต้อนรับผู้ดูแลระบบ: ${user.name}`, 'success');
     } else {
-      alert(`✅ เข้าสู่ระบบสำเร็จ: ${user.name} (${user.email})`);
+      showToast(`✅ เข้าสู่ระบบสำเร็จ: ${user.name}`, 'success');
     }
   });
 }
@@ -223,13 +229,22 @@ function renderHeroBanner() {
           <button class="btn btn-primary" id="hero-book-now-btn" data-movie-id="${featured.id}">
             <span>🎟️ จองตั๋วภาพยนตร์ตอนนี้</span>
           </button>
-          <button class="btn btn-secondary" onclick="alert('ตัวอย่างภาพยนตร์: ${featured.title}\\n\\nเรื่องย่อ: ${featured.synopsis}')">
+          <button class="btn btn-secondary" id="hero-synopsis-btn">
             <span>▶ ดูเรื่องย่อ & ตัวอย่าง</span>
           </button>
         </div>
       </div>
     </div>
   `;
+
+  document.getElementById('hero-synopsis-btn')?.addEventListener('click', () => {
+    showModal({
+      title: `${featured.title} (${featured.thaiTitle})`,
+      message: `${featured.synopsis}\n\nผู้กำกับ: ${featured.director}\nนักแสดง: ${featured.cast}\nความยาว: ${featured.duration} นาที | เรตติ้ง: ${featured.rating}`,
+      type: 'info',
+      confirmText: 'ปิด'
+    });
+  });
 
   document.getElementById('hero-book-now-btn')?.addEventListener('click', (e) => {
     openBookingModal(e.currentTarget.dataset.movieId);
@@ -297,10 +312,11 @@ function renderMovieCatalog() {
 
 // Open Booking & Seat Selection Modal
 function openBookingModal(movieId) {
-  // Enforce Google authentication before booking
+  // Enforce Google authentication before booking with modern popup
   if (!authService.isAuthenticated()) {
-    alert('⚠️ กรุณาเข้าสู่ระบบด้วยบัญชี Google ก่อนทำรายการจองตั๋วภาพยนตร์');
-    openOAuthModal();
+    showAuthRequiredModal(() => {
+      openOAuthModal();
+    });
     return;
   }
 
@@ -413,10 +429,11 @@ function updateBookingCheckoutBar() {
 
 // Open Checkout Modal
 async function openCheckoutModal() {
-  // Enforce Google authentication before checkout
+  // Enforce Google authentication before checkout with modern popup
   if (!authService.isAuthenticated()) {
-    alert('⚠️ กรุณาเข้าสู่ระบบด้วยบัญชี Google ก่อนดำเนินการชำระเงิน');
-    openOAuthModal();
+    showAuthRequiredModal(() => {
+      openOAuthModal();
+    });
     return;
   }
 
@@ -465,8 +482,9 @@ async function openCheckoutModal() {
 // Complete Order & Trigger Confetti
 function handleConfirmPayment(paymentMethod) {
   if (!authService.isAuthenticated()) {
-    alert('⚠️ กรุณาเข้าสู่ระบบด้วยบัญชี Google ก่อนยืนยันการชำระเงิน');
-    openOAuthModal();
+    showAuthRequiredModal(() => {
+      openOAuthModal();
+    });
     return;
   }
 
@@ -489,6 +507,8 @@ function handleConfirmPayment(paymentMethod) {
       origin: { y: 0.6 }
     });
 
+    showToast('ชำระเงินและออก E-Ticket เรียบร้อยแล้ว!', 'success');
+
     // Render E-Ticket Pass with back option to all booked tickets
     const myOrders = getUserOrders();
     renderTicketPass(order, ticketModalContainer, {
@@ -497,7 +517,12 @@ function handleConfirmPayment(paymentMethod) {
       totalCount: myOrders.length
     });
   } catch (err) {
-    alert("เกิดข้อผิดพลาดในการยืนยันคำสั่งซื้อ: " + err.message);
+    showModal({
+      title: 'เกิดข้อผิดพลาดในการยืนยันคำสั่งซื้อ',
+      message: err.message,
+      type: 'error',
+      confirmText: 'ตกลง'
+    });
   }
 }
 
@@ -575,12 +600,12 @@ function setupEventListeners() {
     const input = document.getElementById('google-client-id-input');
     if (input && input.value.trim()) {
       authService.setClientId(input.value.trim());
-      alert('✅ บันทึก Google Client ID เรียบร้อยแล้ว! กำลังเชื่อมต่อกับ Google...');
+      showToast('บันทึก Google Client ID เรียบร้อยแล้ว กำลังเชื่อมต่อ...', 'success');
       authService.initGoogleIdentityButton('real-google-btn-container', (user) => {
         oauthModalOverlay.style.display = 'none';
       });
     } else {
-      alert('กรุณาระบุ Google Client ID ให้ถูกต้อง');
+      showToast('กรุณาระบุ Google Client ID ให้ถูกต้อง', 'warning');
     }
   });
 
@@ -604,11 +629,11 @@ function setupEventListeners() {
     customGoogleEmail.value = '';
 
     if (authService.isSuperAdmin()) {
-      alert(`👑 ยินดีต้อนรับผู้ดูแลระบบสูงสุด (Super Admin): ${email}`);
+      showToast(`👑 ยินดีต้อนรับผู้ดูแลระบบสูงสุด (Super Admin): ${email}`, 'success');
     } else if (authService.isAdmin()) {
-      alert(`✅ ยินดีต้อนรับผู้ดูแลระบบ (Admin): ${email}`);
+      showToast(`✅ ยินดีต้อนรับผู้ดูแลระบบ (Admin): ${email}`, 'success');
     } else {
-      alert(`✅ เข้าสู่ระบบสำเร็จ: ${email}`);
+      showToast(`✅ เข้าสู่ระบบสำเร็จ: ${email}`, 'success');
     }
   });
 
@@ -621,8 +646,9 @@ function setupEventListeners() {
   // My Tickets navigation (Shows ALL booked tickets)
   navMyTicketsBtn.addEventListener('click', () => {
     if (!authService.isAuthenticated()) {
-      alert("⚠️ กรุณาเข้าสู่ระบบด้วยบัญชี Google เพื่อดูรายการตั๋วภาพยนตร์ของคุณ");
-      openOAuthModal();
+      showAuthRequiredModal(() => {
+        openOAuthModal();
+      });
       return;
     }
     const myOrders = getUserOrders();

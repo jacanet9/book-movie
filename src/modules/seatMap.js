@@ -1,6 +1,7 @@
 // Interactive Visual Seat Map Component
 import { SEAT_PRICING } from '../data/mockData.js';
 import { bookingEngine } from './bookingEngine.js';
+import { showToast } from '../utils/notification.js';
 
 export function renderSeatMap(containerElement) {
   const currentShowtime = bookingEngine.selectedShowtime;
@@ -139,7 +140,7 @@ export function renderSeatMap(containerElement) {
       };
       const res = bookingEngine.toggleSeat(seat);
       if (!res.success) {
-        alert(res.reason);
+        showToast(res.reason, 'warning');
       }
     });
   });
