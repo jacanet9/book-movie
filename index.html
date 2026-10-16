@@ -279,6 +279,60 @@
   <!-- E-Ticket Pass Modal Container -->
   <div id="ticket-modal-container"></div>
 
+  <!-- Floating AI Cinema Assistant (CINEBOT) -->
+  <div id="cinebot-widget-container" class="cinebot-widget">
+    <!-- Chat Window -->
+    <div id="cinebot-chat-window" class="cinebot-window" style="display: none;">
+      <!-- Header -->
+      <div class="cinebot-header">
+        <div class="cinebot-header-info">
+          <div class="cinebot-avatar">🤖</div>
+          <div>
+            <h4 class="cinebot-name">CINEBOT AI</h4>
+            <span class="cinebot-status"><span class="status-dot"></span> ผู้ช่วยอัจฉริยะ CINEPASS</span>
+          </div>
+        </div>
+        <div class="cinebot-header-controls">
+          <button id="cinebot-clear-btn" class="cinebot-btn-icon" title="ล้างการสนทนา">🗑️</button>
+          <button id="cinebot-close-btn" class="cinebot-btn-icon" title="ปิดหน้าต่าง">✕</button>
+        </div>
+      </div>
+
+      <!-- Messages Area -->
+      <div id="cinebot-messages-area" class="cinebot-messages">
+        <!-- Injected via JavaScript -->
+      </div>
+
+      <!-- Quick Prompt Chips -->
+      <div id="cinebot-quick-chips" class="cinebot-chips-bar">
+        <!-- Injected via JavaScript -->
+      </div>
+
+      <!-- Input Bar -->
+      <form id="cinebot-input-form" class="cinebot-input-bar">
+        <input 
+          type="text" 
+          id="cinebot-text-input" 
+          placeholder="ถามเรื่องหนัง, ตั๋ว, สาขา, วิธีจอง..." 
+          autocomplete="off"
+          required
+        >
+        <button type="submit" id="cinebot-send-btn" class="cinebot-send-button" title="ส่งข้อความ">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+          </svg>
+        </button>
+      </form>
+    </div>
+
+    <!-- Floating Launcher Button -->
+    <button id="cinebot-launcher-btn" class="cinebot-launcher" title="ปรึกษา AI ผู้ช่วย CINEPASS">
+      <span class="launcher-icon">🤖</span>
+      <span class="launcher-label">ถาม AI ผู้ช่วย</span>
+      <span class="launcher-pulse"></span>
+    </button>
+  </div>
+
   <script type="module" src="./src/main.js"></script>
 </body>
 </html>

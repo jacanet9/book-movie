@@ -8,6 +8,7 @@ import { getAvailableDates } from './data/mockData.js';
 import { generateQRCodeUrl } from './utils/qrHelper.js';
 import { authService, ADMIN_EMAILS } from './modules/authService.js';
 import { showToast, showModal, showAuthRequiredModal } from './utils/notification.js';
+import { initChatbotWidget } from './modules/aiChatbot.js';
 
 // DOM Elements
 const customerPortalView = document.getElementById('customer-portal-view');
@@ -60,6 +61,26 @@ function initApp() {
   renderHeroBanner();
   renderMovieCatalog();
   setupEventListeners();
+
+  // Initialize AI Cinema Chatbot (CINEBOT)
+  initChatbotWidget({
+    onBookMovie: (movieId) => {
+      openBookingModal(movieId);
+    },
+    onBookNow: () => {
+      window.scrollTo({ top: heroBannerContainer?.offsetTop || 0, behavior: 'smooth' });
+    },
+    onViewCinemas: () => {
+      const navCinemasBtn = document.getElementById('nav-cinemas-btn');
+      navCinemasBtn?.click();
+    },
+    onViewMovies: () => {
+      window.scrollTo({ top: heroBannerContainer?.offsetTop || 0, behavior: 'smooth' });
+    },
+    onOpenLogin: () => {
+      openOAuthModal();
+    }
+  });
 
   // Subscribe to auth state changes
   authService.subscribe((event, user) => {

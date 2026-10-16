@@ -242,3 +242,62 @@ test('5. QR Token Security - Signatures & Anti-Tampering', () => {
   assert.equal(tamperedResult.valid, false);
   assert.match(tamperedResult.error, /Invalid signature/);
 });
+
+import { answerCinemaQuery } from '../src/modules/aiChatbot.js';
+
+test('6. AI Chatbot (CINEBOT) - Domain-Specific Query & Scope Guard', async (t) => {
+  await t.test('Answers questions about currently showing movies', () => {
+    const res = answerCinemaQuery('ตอนนี้มีหนังอะไรฉายอยู่บ้าง');
+    assert.ok(res.text.includes('NEO CHRONO'));
+    assert.ok(res.text.includes('THE LAST HORIZON'));
+    assert.ok(res.actions && res.actions.length > 0);
+  });
+
+  await t.test('Answers specific movie synopsis and director info', () => {
+    const res = answerCinemaQuery('ขอเรื่องย่อ THE LAST HORIZON หน่อย');
+    assert.ok(res.text.includes('ขอบฟ้าไร้สิ้นสุด'));
+    assert.ok(res.text.includes('หลุมดำ'));
+    assert.equal(res.actions[0].action, 'BOOK_MOVIE');
+    assert.equal(res.actions[0].payload, 'mov-04');
+  });
+
+  await t.test('Answers seat pricing accurately', () => {
+    const res = answerCinemaQuery('ที่นั่งราคาเท่าไหร่ โซฟาคู่ราคาเท่าไหร่');
+    assert.ok(res.text.includes('Sofa Sweet (Pair): ฿600'));
+    assert.ok(res.text.includes('Premium Seat: ฿260'));
+    assert.ok(res.text.includes('Standard Seat: ฿220'));
+    assert.ok(res.text.includes('VAT 7%'));
+  });
+
+  await t.test('Answers cinema branch and projection format details', () => {
+    const res = answerCinemaQuery('มีโรงหนังสาขาไหนบ้าง');
+    assert.ok(res.text.includes('Paragon Cineplex'));
+    assert.ok(res.text.includes('Icon Cineconic'));
+    assert.ok(res.text.includes('Mega Cineplex'));
+    assert.ok(res.text.includes('IMAX'));
+  });
+
+  await t.test('Explains 10-minute hold timer', () => {
+    const res = answerCinemaQuery('ระบบล็อกที่นั่ง 10 นาทีคืออะไร');
+    assert.ok(res.text.includes('Hold'));
+    assert.ok(res.text.includes('10 นาที'));
+  });
+
+  await t.test('Explains E-Ticket and QR Code entry', () => {
+    const res = answerCinemaQuery('วิธีใช้ตั๋ว E-Ticket สแกนเข้าโรง');
+    assert.ok(res.text.includes('E-Ticket'));
+    assert.ok(res.text.includes('QR Code'));
+    assert.ok(res.text.includes('15 นาที'));
+  });
+
+  await t.test('Scope Guard: politely rejects out-of-scope questions', () => {
+    const resWeather = answerCinemaQuery('วันนี้ฝนจะตกไหม แนะนำร้านอาหารใกล้ๆ หน่อย');
+    assert.ok(resWeather.text.includes('ขออภัย'));
+    assert.ok(resWeather.text.includes('เฉพาะ'));
+    assert.ok(resWeather.text.includes('CINEPASS'));
+
+    const resCode = answerCinemaQuery('สอนเขียนโปรแกรม python ให้หน่อย');
+    assert.ok(resCode.text.includes('ขออภัย'));
+    assert.ok(resCode.text.includes('เฉพาะ'));
+  });
+});
