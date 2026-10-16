@@ -6,6 +6,7 @@ import { renderTicketPass } from './modules/ticketGenerator.js';
 import { renderAdminPortal } from './modules/adminPortal.js';
 import { getAvailableDates } from './data/mockData.js';
 import { generateQRCodeUrl } from './utils/qrHelper.js';
+import { authService, ADMIN_EMAILS } from './modules/authService.js';
 
 // DOM Elements
 const customerPortalView = document.getElementById('customer-portal-view');
@@ -15,6 +16,18 @@ const moviesGridContainer = document.getElementById('movies-grid-container');
 const bookingModalOverlay = document.getElementById('booking-modal-overlay');
 const checkoutModalOverlay = document.getElementById('checkout-modal-overlay');
 const ticketModalContainer = document.getElementById('ticket-modal-container');
+
+// Auth Modals
+const authNavContainer = document.getElementById('auth-nav-container');
+const oauthModalOverlay = document.getElementById('oauth-modal-overlay');
+const adminDeniedModalOverlay = document.getElementById('admin-denied-modal-overlay');
+const closeOauthModalBtn = document.getElementById('close-oauth-modal-btn');
+const closeAdminDeniedBtn = document.getElementById('close-admin-denied-btn');
+const loginAdminSereeBtn = document.getElementById('login-admin-seree-btn');
+const loginCustomerDemoBtn = document.getElementById('login-customer-demo-btn');
+const customGoogleLoginForm = document.getElementById('custom-google-login-form');
+const customGoogleEmail = document.getElementById('custom-google-email');
+const switchToAdminAccountBtn = document.getElementById('switch-to-admin-account-btn');
 
 const cinemaSelect = document.getElementById('cinema-select');
 const dateChipsContainer = document.getElementById('date-chips-container');
@@ -42,10 +55,20 @@ let activePaymentMethod = 'promptpay';
 
 // Initialize Application
 function initApp() {
+  renderAuthNavbar();
   updateTicketCount();
   renderHeroBanner();
   renderMovieCatalog();
   setupEventListeners();
+
+  // Subscribe to auth state changes
+  authService.subscribe((event, user) => {
+    renderAuthNavbar();
+    if (!authService.isAdmin() && adminPortalView.style.display !== 'none') {
+      adminPortalView.style.display = 'none';
+      customerPortalView.style.display = 'block';
+    }
+  });
 
   // Subscribe to bookingEngine state changes
   bookingEngine.subscribe((event, payload) => {
@@ -86,6 +109,47 @@ function initApp() {
         break;
     }
   });
+}
+
+// Render Google Auth in Navbar
+function renderAuthNavbar() {
+  if (!authNavContainer) return;
+
+  if (authService.isAuthenticated()) {
+    const user = authService.currentUser;
+    authNavContainer.innerHTML = `
+      <div class="user-profile-badge">
+        <img src="${user.avatar}" class="user-avatar-img" alt="${user.name}">
+        <div class="user-info-text">
+          <span class="user-name-label">${user.name}</span>
+          <span class="user-role-tag ${user.isAdmin ? 'role-admin' : 'role-customer'}">
+            ${user.isAdmin ? '👑 ADMIN' : 'ลูกค้า'}
+          </span>
+        </div>
+        <button class="logout-icon-btn" id="logout-btn" title="ออกจากระบบ (Logout)">⏻</button>
+      </div>
+    `;
+
+    document.getElementById('logout-btn')?.addEventListener('click', () => {
+      authService.logout();
+    });
+  } else {
+    authNavContainer.innerHTML = `
+      <button class="btn-google" id="open-oauth-modal-btn">
+        <svg class="google-g-icon" viewBox="0 0 24 24">
+          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+        </svg>
+        <span>เข้าสู่ระบบ Google</span>
+      </button>
+    `;
+
+    document.getElementById('open-oauth-modal-btn')?.addEventListener('click', () => {
+      oauthModalOverlay.style.display = 'flex';
+    });
+  }
 }
 
 // Update Ticket Badge Count in Navbar
@@ -321,10 +385,11 @@ async function openCheckoutModal() {
 // Complete Order & Trigger Confetti
 function handleConfirmPayment(paymentMethod) {
   try {
+    const user = authService.currentUser;
     const order = bookingEngine.completeBooking({
       paymentMethod,
-      customerName: 'Khun Moviegoer',
-      customerEmail: 'moviegoer@cinepass.com',
+      customerName: user ? user.name : 'Khun Customer',
+      customerEmail: user ? user.email : 'customer@example.com',
       customerPhone: '089-999-8888'
     });
 
@@ -359,8 +424,80 @@ function setupEventListeners() {
     window.scrollTo({ top: heroBannerContainer.offsetTop - 80, behavior: 'smooth' });
   });
 
-  // Toggle Admin Portal
+  // Toggle Admin Portal with Permission Check (Only seree999@gmail.com)
   toggleAdminBtn.addEventListener('click', () => {
+    if (!authService.isAuthenticated()) {
+      oauthModalOverlay.style.display = 'flex';
+      return;
+    }
+
+    if (!authService.isAdmin()) {
+      adminDeniedModalOverlay.style.display = 'flex';
+      return;
+    }
+
+    // Is Authorized Admin
+    customerPortalView.style.display = 'none';
+    adminPortalView.style.display = 'block';
+    renderAdminPortal(adminPortalView);
+  });
+
+  // Google OAuth Modal Listeners
+  closeOauthModalBtn.addEventListener('click', () => {
+    oauthModalOverlay.style.display = 'none';
+  });
+
+  closeAdminDeniedBtn.addEventListener('click', () => {
+    adminDeniedModalOverlay.style.display = 'none';
+  });
+
+  // Login as Seree (Super Admin)
+  loginAdminSereeBtn.addEventListener('click', () => {
+    authService.loginWithGoogle({
+      email: 'seree999@gmail.com',
+      name: 'Seree (เสรี)',
+      avatar: 'https://ui-avatars.com/api/?name=Seree+Admin&background=f59e0b&color=000&bold=true'
+    });
+    oauthModalOverlay.style.display = 'none';
+    alert('✅ เข้าสู่ระบบสำเร็จในฐานะผู้ดูแลระบบ (seree999@gmail.com)');
+  });
+
+  // Login as Customer Demo
+  loginCustomerDemoBtn.addEventListener('click', () => {
+    authService.loginWithGoogle({
+      email: 'customer.demo@gmail.com',
+      name: 'Customer User',
+      avatar: 'https://ui-avatars.com/api/?name=Customer+User&background=06b6d4&color=000&bold=true'
+    });
+    oauthModalOverlay.style.display = 'none';
+    alert('✅ เข้าสู่ระบบสำเร็จในฐานะลูกค้าทั่วไป (customer.demo@gmail.com)');
+  });
+
+  // Custom Google Email Login
+  customGoogleLoginForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const email = customGoogleEmail.value.trim();
+    if (!email) return;
+
+    authService.loginWithGoogle({ email });
+    oauthModalOverlay.style.display = 'none';
+    customGoogleEmail.value = '';
+
+    if (authService.isAdmin()) {
+      alert(`✅ เข้าสู่ระบบสำเร็จในฐานะผู้ดูแลระบบ (${email})`);
+    } else {
+      alert(`✅ เข้าสู่ระบบสำเร็จในฐานะลูกค้าทั่วไป (${email})`);
+    }
+  });
+
+  // Switch to Admin Account button from Denied Modal
+  switchToAdminAccountBtn.addEventListener('click', () => {
+    authService.loginWithGoogle({
+      email: 'seree999@gmail.com',
+      name: 'Seree (เสรี)',
+      avatar: 'https://ui-avatars.com/api/?name=Seree+Admin&background=f59e0b&color=000&bold=true'
+    });
+    adminDeniedModalOverlay.style.display = 'none';
     customerPortalView.style.display = 'none';
     adminPortalView.style.display = 'block';
     renderAdminPortal(adminPortalView);
