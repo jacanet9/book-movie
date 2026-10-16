@@ -111,6 +111,22 @@ function initApp() {
   });
 }
 
+// Open Google OAuth Modal & Initialize Google Identity Services
+function openOAuthModal() {
+  oauthModalOverlay.style.display = 'flex';
+  const clientIdInput = document.getElementById('google-client-id-input');
+  if (clientIdInput) clientIdInput.value = authService.googleClientId;
+
+  authService.initGoogleIdentityButton('real-google-btn-container', (user) => {
+    oauthModalOverlay.style.display = 'none';
+    if (user.isAdmin) {
+      alert(`✅ ยินดีต้อนรับผู้ดูแลระบบ: ${user.name} (${user.email})`);
+    } else {
+      alert(`✅ เข้าสู่ระบบสำเร็จ: ${user.name} (${user.email})`);
+    }
+  });
+}
+
 // Render Google Auth in Navbar
 function renderAuthNavbar() {
   if (!authNavContainer) return;
@@ -147,7 +163,7 @@ function renderAuthNavbar() {
     `;
 
     document.getElementById('open-oauth-modal-btn')?.addEventListener('click', () => {
-      oauthModalOverlay.style.display = 'flex';
+      openOAuthModal();
     });
   }
 }
@@ -427,7 +443,7 @@ function setupEventListeners() {
   // Toggle Admin Portal with Permission Check (Only seree999@gmail.com)
   toggleAdminBtn.addEventListener('click', () => {
     if (!authService.isAuthenticated()) {
-      oauthModalOverlay.style.display = 'flex';
+      openOAuthModal();
       return;
     }
 
@@ -440,6 +456,26 @@ function setupEventListeners() {
     customerPortalView.style.display = 'none';
     adminPortalView.style.display = 'block';
     renderAdminPortal(adminPortalView);
+  });
+
+  // Toggle Google Client ID Config Box
+  document.getElementById('toggle-config-clientid-btn')?.addEventListener('click', () => {
+    const box = document.getElementById('google-config-box');
+    if (box) box.style.display = box.style.display === 'none' ? 'block' : 'none';
+  });
+
+  // Save Google Client ID
+  document.getElementById('save-google-client-id-btn')?.addEventListener('click', () => {
+    const input = document.getElementById('google-client-id-input');
+    if (input && input.value.trim()) {
+      authService.setClientId(input.value.trim());
+      alert('✅ บันทึก Google Client ID เรียบร้อยแล้ว! กำลังเชื่อมต่อกับ Google...');
+      authService.initGoogleIdentityButton('real-google-btn-container', (user) => {
+        oauthModalOverlay.style.display = 'none';
+      });
+    } else {
+      alert('กรุณาระบุ Google Client ID ให้ถูกต้อง');
+    }
   });
 
   // Google OAuth Modal Listeners
