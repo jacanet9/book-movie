@@ -6,6 +6,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "test": "node --import ./tests/setup.js --test tests/suite.test.js",
     "deploy:cloudflare": "vite build && npx wrangler pages deploy dist --project-name=movie-booking-app --branch=main --commit-dirty=true"
   },
   "dependencies": {

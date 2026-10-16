@@ -29,6 +29,7 @@ class AuthService {
 
   loadUser() {
     try {
+      if (typeof localStorage === 'undefined') return null;
       const saved = localStorage.getItem('mb_auth_user');
       if (saved) {
         const user = JSON.parse(saved);
@@ -44,20 +45,28 @@ class AuthService {
   }
 
   loadClientId() {
-    return (
-      localStorage.getItem('mb_google_client_id') ||
-      (typeof import.meta !== 'undefined' && import.meta.env?.VITE_GOOGLE_CLIENT_ID) ||
-      ''
-    );
+    try {
+      if (typeof localStorage === 'undefined') return '';
+      return (
+        localStorage.getItem('mb_google_client_id') ||
+        (typeof import.meta !== 'undefined' && import.meta.env?.VITE_GOOGLE_CLIENT_ID) ||
+        ''
+      );
+    } catch {
+      return '';
+    }
   }
 
   setClientId(clientId) {
     this.googleClientId = clientId.trim();
-    localStorage.setItem('mb_google_client_id', this.googleClientId);
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('mb_google_client_id', this.googleClientId);
+    }
     this.notify('CLIENT_ID_UPDATED', this.googleClientId);
   }
 
   saveUser(user) {
+    if (typeof localStorage === 'undefined') return;
     if (user) {
       localStorage.setItem('mb_auth_user', JSON.stringify(user));
     } else {
@@ -141,7 +150,7 @@ class AuthService {
   logout() {
     this.currentUser = null;
     this.saveUser(null);
-    if (window.google?.accounts?.id) {
+    if (typeof window !== 'undefined' && window.google?.accounts?.id) {
       window.google.accounts.id.disableAutoSelect();
     }
     this.notify('AUTH_STATE_CHANGED', null);

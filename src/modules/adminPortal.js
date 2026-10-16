@@ -1,5 +1,6 @@
 // Admin Management & Analytics Portal Component
 import { bookingEngine } from './bookingEngine.js';
+import { renderTicketPass } from './ticketGenerator.js';
 
 export function renderAdminPortal(containerElement) {
   const movies = bookingEngine.movies;
@@ -270,7 +271,21 @@ export function renderAdminPortal(containerElement) {
   // Close Admin logic
   containerElement.querySelector('.close-admin-btn')?.addEventListener('click', () => {
     containerElement.innerHTML = '';
+    containerElement.style.display = 'none';
     document.getElementById('customer-portal-view').style.display = 'block';
+  });
+
+  // View Order Ticket in Modal from Admin
+  containerElement.querySelectorAll('.view-order-ticket-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const order = orders.find(o => o.id === btn.dataset.id);
+      if (order) {
+        const ticketModalContainer = document.getElementById('ticket-modal-container');
+        if (ticketModalContainer) {
+          renderTicketPass(order, ticketModalContainer);
+        }
+      }
+    });
   });
 
   // Add Showtime Submit

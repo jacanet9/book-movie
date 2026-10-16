@@ -471,7 +471,38 @@ function setupEventListeners() {
   document.getElementById('nav-movies-btn').addEventListener('click', () => {
     adminPortalView.style.display = 'none';
     customerPortalView.style.display = 'block';
-    window.scrollTo({ top: heroBannerContainer.offsetTop - 80, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  // Cinema Branches Modal Listeners
+  const cinemasModalOverlay = document.getElementById('cinemas-modal-overlay');
+  const cinemasListContainer = document.getElementById('cinemas-list-container');
+  const closeCinemasModalBtn = document.getElementById('close-cinemas-modal-btn');
+  const navCinemasBtn = document.getElementById('nav-cinemas-btn');
+
+  function openCinemasModal() {
+    if (!cinemasListContainer) return;
+    cinemasListContainer.innerHTML = bookingEngine.cinemas.map(c => `
+      <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-glass); border-radius: 10px; padding: 1rem 1.25rem;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+          <h4 style="font-size: 1.1rem; color: var(--gold-primary); margin: 0;">🏢 ${c.name}</h4>
+          <span style="font-size: 0.75rem; background: rgba(245,158,11,0.15); color: var(--gold-primary); padding: 0.2rem 0.5rem; border-radius: 4px;">เปิด 10:00 - 24:00 น.</span>
+        </div>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.75rem;">📍 ${c.location}</p>
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+          ${c.halls.map(h => `<span style="font-size: 0.75rem; background: rgba(56,189,248,0.1); color: var(--cyan-accent); padding: 0.2rem 0.6rem; border-radius: 4px; border: 1px solid rgba(56,189,248,0.2);">${h}</span>`).join('')}
+        </div>
+      </div>
+    `).join('');
+    if (cinemasModalOverlay) cinemasModalOverlay.style.display = 'flex';
+  }
+
+  navCinemasBtn?.addEventListener('click', openCinemasModal);
+  closeCinemasModalBtn?.addEventListener('click', () => {
+    if (cinemasModalOverlay) cinemasModalOverlay.style.display = 'none';
+  });
+  cinemasModalOverlay?.addEventListener('click', (e) => {
+    if (e.target === cinemasModalOverlay) cinemasModalOverlay.style.display = 'none';
   });
 
   // Toggle Admin Portal with Permission Check (Only seree999@gmail.com)

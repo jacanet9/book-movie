@@ -30,6 +30,7 @@ class BookingEngine {
 
   loadFromStorage(key, defaultValue) {
     try {
+      if (typeof localStorage === 'undefined') return defaultValue;
       const data = localStorage.getItem(key);
       return data ? JSON.parse(data) : defaultValue;
     } catch {
@@ -39,6 +40,7 @@ class BookingEngine {
 
   saveToStorage(key, value) {
     try {
+      if (typeof localStorage === 'undefined') return;
       localStorage.setItem(key, JSON.stringify(value));
     } catch (e) {
       console.warn("Storage write error", e);
@@ -115,7 +117,7 @@ class BookingEngine {
 
   // Acquire 10-Minute Seat Hold (Atomic simulation)
   startSeatHold() {
-    if (this.selectedSeats.length === 0) return false;
+    if (this.selectedSeats.length === 0 || !this.selectedShowtime) return false;
 
     // Check race condition
     const currentOccupied = this.selectedShowtime.occupiedSeats || [];
@@ -199,8 +201,8 @@ class BookingEngine {
         paidAt: new Date().toISOString()
       },
       customer: {
-        name: customerName || 'Khun Customer',
-        email: customerEmail || 'customer@example.com',
+        name: customerName || 'ผู้จองตั๋วภาพยนตร์',
+        email: customerEmail || 'booking@parichat.skru.ac.th',
         phone: customerPhone || '081-234-5678'
       },
       status: 'CONFIRMED' // CONFIRMED, CHECKED_IN
@@ -218,8 +220,9 @@ class BookingEngine {
     this.orders.unshift(newOrder);
     this.saveToStorage('mb_orders', this.orders);
 
-    // Stop hold timer
+    // Stop hold timer & clear active seat selection
     this.cancelHold();
+    this.selectedSeats = [];
 
     this.notify('BOOKING_COMPLETED', newOrder);
     return newOrder;
