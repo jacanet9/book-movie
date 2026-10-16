@@ -1,5 +1,6 @@
 // Authentication & Official Google OAuth (Google Identity Services)
-export const ADMIN_EMAILS = ['seree999@gmail.com'];
+export const SUPERADMIN_EMAILS = ['674295049@parichat.skru.ac.th'];
+export const ADMIN_EMAILS = ['674295049@parichat.skru.ac.th', 'seree999@gmail.com'];
 
 // Helper to decode JWT token from Google Identity Services
 export function parseJwt(token) {
@@ -31,7 +32,9 @@ class AuthService {
       const saved = localStorage.getItem('mb_auth_user');
       if (saved) {
         const user = JSON.parse(saved);
+        user.isSuperAdmin = this.checkIsSuperAdmin(user.email);
         user.isAdmin = this.checkIsAdmin(user.email);
+        user.role = user.isSuperAdmin ? 'SUPER_ADMIN' : user.isAdmin ? 'ADMIN' : 'CUSTOMER';
         return user;
       }
     } catch (e) {
@@ -62,6 +65,11 @@ class AuthService {
     }
   }
 
+  checkIsSuperAdmin(email) {
+    if (!email) return false;
+    return SUPERADMIN_EMAILS.map(e => e.toLowerCase()).includes(email.trim().toLowerCase());
+  }
+
   checkIsAdmin(email) {
     if (!email) return false;
     return ADMIN_EMAILS.map(e => e.toLowerCase()).includes(email.trim().toLowerCase());
@@ -86,6 +94,7 @@ class AuthService {
     }
 
     const email = payload.email.trim().toLowerCase();
+    const isSuperAdmin = this.checkIsSuperAdmin(email);
     const isAdmin = this.checkIsAdmin(email);
 
     this.currentUser = {
@@ -93,8 +102,9 @@ class AuthService {
       email,
       name: payload.name || payload.given_name || email.split('@')[0],
       avatar: payload.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(payload.name || email)}&background=f59e0b&color=000&bold=true`,
+      isSuperAdmin,
       isAdmin,
-      role: isAdmin ? 'ADMIN' : 'CUSTOMER',
+      role: isSuperAdmin ? 'SUPER_ADMIN' : isAdmin ? 'ADMIN' : 'CUSTOMER',
       provider: 'google',
       verified: payload.email_verified || true,
       loggedInAt: new Date().toISOString()
@@ -108,6 +118,7 @@ class AuthService {
   // Fallback or simulated Google login
   loginWithGoogle({ email, name, avatar }) {
     const trimmedEmail = email.trim().toLowerCase();
+    const isSuperAdmin = this.checkIsSuperAdmin(trimmedEmail);
     const isAdmin = this.checkIsAdmin(trimmedEmail);
 
     this.currentUser = {
@@ -115,8 +126,9 @@ class AuthService {
       email: trimmedEmail,
       name: name || trimmedEmail.split('@')[0],
       avatar: avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(name || trimmedEmail)}&background=f59e0b&color=000&bold=true`,
+      isSuperAdmin,
       isAdmin,
-      role: isAdmin ? 'ADMIN' : 'CUSTOMER',
+      role: isSuperAdmin ? 'SUPER_ADMIN' : isAdmin ? 'ADMIN' : 'CUSTOMER',
       provider: 'google',
       loggedInAt: new Date().toISOString()
     };
@@ -141,6 +153,10 @@ class AuthService {
 
   isAdmin() {
     return !!this.currentUser?.isAdmin;
+  }
+
+  isSuperAdmin() {
+    return !!this.currentUser?.isSuperAdmin;
   }
 
   // Initialize official Google Identity Services in browser

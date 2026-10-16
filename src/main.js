@@ -23,11 +23,9 @@ const oauthModalOverlay = document.getElementById('oauth-modal-overlay');
 const adminDeniedModalOverlay = document.getElementById('admin-denied-modal-overlay');
 const closeOauthModalBtn = document.getElementById('close-oauth-modal-btn');
 const closeAdminDeniedBtn = document.getElementById('close-admin-denied-btn');
-const loginAdminSereeBtn = document.getElementById('login-admin-seree-btn');
-const loginCustomerDemoBtn = document.getElementById('login-customer-demo-btn');
 const customGoogleLoginForm = document.getElementById('custom-google-login-form');
 const customGoogleEmail = document.getElementById('custom-google-email');
-const switchToAdminAccountBtn = document.getElementById('switch-to-admin-account-btn');
+const reloginGoogleBtn = document.getElementById('relogin-google-btn');
 
 const cinemaSelect = document.getElementById('cinema-select');
 const dateChipsContainer = document.getElementById('date-chips-container');
@@ -133,13 +131,23 @@ function renderAuthNavbar() {
 
   if (authService.isAuthenticated()) {
     const user = authService.currentUser;
+    const isSuperAdmin = user.isSuperAdmin;
+    const isAdmin = user.isAdmin;
+
+    // Show nav admin button ONLY when logged in as admin or superadmin
+    if (isSuperAdmin || isAdmin) {
+      toggleAdminBtn.style.display = 'inline-flex';
+    } else {
+      toggleAdminBtn.style.display = 'none';
+    }
+
     authNavContainer.innerHTML = `
       <div class="user-profile-badge">
         <img src="${user.avatar}" class="user-avatar-img" alt="${user.name}">
         <div class="user-info-text">
           <span class="user-name-label">${user.name}</span>
-          <span class="user-role-tag ${user.isAdmin ? 'role-admin' : 'role-customer'}">
-            ${user.isAdmin ? '👑 ADMIN' : 'ลูกค้า'}
+          <span class="user-role-tag ${isSuperAdmin ? 'role-superadmin' : isAdmin ? 'role-admin' : 'role-customer'}">
+            ${isSuperAdmin ? '👑 SUPER ADMIN' : isAdmin ? '👑 ADMIN' : 'ลูกค้า'}
           </span>
         </div>
         <button class="logout-icon-btn" id="logout-btn" title="ออกจากระบบ (Logout)">⏻</button>
@@ -150,6 +158,9 @@ function renderAuthNavbar() {
       authService.logout();
     });
   } else {
+    // When NOT logged in, NEVER show nav admin
+    toggleAdminBtn.style.display = 'none';
+
     authNavContainer.innerHTML = `
       <button class="btn-google" id="open-oauth-modal-btn">
         <svg class="google-g-icon" viewBox="0 0 24 24">
@@ -487,29 +498,7 @@ function setupEventListeners() {
     adminDeniedModalOverlay.style.display = 'none';
   });
 
-  // Login as Seree (Super Admin)
-  loginAdminSereeBtn.addEventListener('click', () => {
-    authService.loginWithGoogle({
-      email: 'seree999@gmail.com',
-      name: 'Seree (เสรี)',
-      avatar: 'https://ui-avatars.com/api/?name=Seree+Admin&background=f59e0b&color=000&bold=true'
-    });
-    oauthModalOverlay.style.display = 'none';
-    alert('✅ เข้าสู่ระบบสำเร็จในฐานะผู้ดูแลระบบ (seree999@gmail.com)');
-  });
-
-  // Login as Customer Demo
-  loginCustomerDemoBtn.addEventListener('click', () => {
-    authService.loginWithGoogle({
-      email: 'customer.demo@gmail.com',
-      name: 'Customer User',
-      avatar: 'https://ui-avatars.com/api/?name=Customer+User&background=06b6d4&color=000&bold=true'
-    });
-    oauthModalOverlay.style.display = 'none';
-    alert('✅ เข้าสู่ระบบสำเร็จในฐานะลูกค้าทั่วไป (customer.demo@gmail.com)');
-  });
-
-  // Custom Google Email Login
+  // Google Email Login Submit
   customGoogleLoginForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const email = customGoogleEmail.value.trim();
@@ -519,24 +508,19 @@ function setupEventListeners() {
     oauthModalOverlay.style.display = 'none';
     customGoogleEmail.value = '';
 
-    if (authService.isAdmin()) {
-      alert(`✅ เข้าสู่ระบบสำเร็จในฐานะผู้ดูแลระบบ (${email})`);
+    if (authService.isSuperAdmin()) {
+      alert(`👑 ยินดีต้อนรับผู้ดูแลระบบสูงสุด (Super Admin): ${email}`);
+    } else if (authService.isAdmin()) {
+      alert(`✅ ยินดีต้อนรับผู้ดูแลระบบ (Admin): ${email}`);
     } else {
-      alert(`✅ เข้าสู่ระบบสำเร็จในฐานะลูกค้าทั่วไป (${email})`);
+      alert(`✅ เข้าสู่ระบบสำเร็จ: ${email}`);
     }
   });
 
-  // Switch to Admin Account button from Denied Modal
-  switchToAdminAccountBtn.addEventListener('click', () => {
-    authService.loginWithGoogle({
-      email: 'seree999@gmail.com',
-      name: 'Seree (เสรี)',
-      avatar: 'https://ui-avatars.com/api/?name=Seree+Admin&background=f59e0b&color=000&bold=true'
-    });
+  // Relogin Google button from Denied Modal
+  reloginGoogleBtn?.addEventListener('click', () => {
     adminDeniedModalOverlay.style.display = 'none';
-    customerPortalView.style.display = 'none';
-    adminPortalView.style.display = 'block';
-    renderAdminPortal(adminPortalView);
+    openOAuthModal();
   });
 
   // My Tickets navigation

@@ -1382,6 +1382,13 @@ h1, h2, h3, h4, .font-display {
   margin-top: 2px;
 }
 
+.role-superadmin {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.35), rgba(244, 63, 94, 0.35));
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.6);
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
+}
+
 .role-admin {
   background: rgba(245, 158, 11, 0.25);
   color: var(--gold-primary);

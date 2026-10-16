@@ -23,7 +23,7 @@
         <button class="nav-btn active" id="nav-movies-btn">ภาพยนตร์</button>
         <button class="nav-btn" id="nav-cinemas-btn">สาขาโรงหนัง</button>
         <button class="nav-btn" id="nav-my-tickets-btn">ตั๋วของฉัน (<span id="ticket-count-badge">0</span>)</button>
-        <button class="nav-btn nav-badge-btn" id="toggle-admin-btn">⚡ ผู้จัดการระบบ (Admin)</button>
+        <button class="nav-btn nav-badge-btn" id="toggle-admin-btn" style="display: none;">⚡ ผู้จัดการระบบ (Admin)</button>
         <div id="auth-nav-container"></div>
       </nav>
     </div>
@@ -31,7 +31,7 @@
 
   <!-- Google OAuth Modal -->
   <div id="oauth-modal-overlay" class="modal-overlay" style="display: none;">
-    <div class="oauth-card animate-slide-up" style="max-width: 520px;">
+    <div class="oauth-card animate-slide-up" style="max-width: 480px;">
       <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem;">
         <div>
           <h3 style="font-size: 1.35rem; display: flex; align-items: center; gap: 0.5rem;">
@@ -49,54 +49,21 @@
       </div>
 
       <!-- Real Official Google Sign-In Button Container -->
-      <div style="margin-bottom: 1.25rem; display: flex; flex-direction: column; align-items: center;">
+      <div style="margin-bottom: 1.5rem; display: flex; flex-direction: column; align-items: center;">
         <div id="real-google-btn-container" style="min-height: 44px; display: flex; justify-content: center; width: 100%;"></div>
       </div>
 
-      <!-- Quick / Demo Accounts -->
-      <div style="display: flex; align-items: center; gap: 0.5rem; margin: 1rem 0 0.75rem; color: var(--text-dim); font-size: 0.8rem;">
-        <span style="flex: 1; height: 1px; background: var(--border-glass);"></span>
-        <span>หรือเลือกบัญชีทดสอบทันที (Fast Sign-In)</span>
-        <span style="flex: 1; height: 1px; background: var(--border-glass);"></span>
-      </div>
-
-      <div class="oauth-accounts-list" style="margin: 0.75rem 0;">
-        <!-- Account 1: Admin seree999@gmail.com -->
-        <button class="auth-account-card admin-card" id="login-admin-seree-btn">
-          <img src="https://ui-avatars.com/api/?name=Seree+Admin&background=f59e0b&color=000&bold=true" class="auth-acc-avatar" alt="">
-          <div class="auth-acc-info">
-            <div class="auth-acc-name">
-              <span>Seree (เสรี)</span>
-              <span class="user-role-tag role-admin">👑 ผู้ดูแลระบบ (ADMIN)</span>
-            </div>
-            <div class="auth-acc-email">seree999@gmail.com</div>
-          </div>
-        </button>
-
-        <!-- Account 2: Regular Customer Account -->
-        <button class="auth-account-card" id="login-customer-demo-btn">
-          <img src="https://ui-avatars.com/api/?name=Customer+User&background=06b6d4&color=000&bold=true" class="auth-acc-avatar" alt="">
-          <div class="auth-acc-info">
-            <div class="auth-acc-name">
-              <span>Customer User</span>
-              <span class="user-role-tag role-customer">ลูกค้าทั่วไป</span>
-            </div>
-            <div class="auth-acc-email">customer.demo@gmail.com</div>
-          </div>
-        </button>
-      </div>
-
-      <!-- Custom Google Email Input Form -->
-      <form id="custom-google-login-form" style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border-glass);">
-        <label class="text-muted" style="font-size: 0.8rem; display: block; margin-bottom: 0.4rem;">หรือระบุบัญชี Google อื่นๆ ของคุณ:</label>
+      <!-- Google Email Input Form -->
+      <form id="custom-google-login-form" style="padding-top: 1rem; border-top: 1px solid var(--border-glass);">
+        <label class="text-muted" style="font-size: 0.85rem; display: block; margin-bottom: 0.5rem;">หรือเข้าสู่ระบบด้วยอีเมล Google ของคุณ:</label>
         <div style="display: flex; gap: 0.5rem;">
-          <input type="email" id="custom-google-email" placeholder="your-email@gmail.com" required style="flex: 1; padding: 0.55rem 0.8rem; background: rgba(255,255,255,0.05); border: 1px solid var(--border-glass); border-radius: 8px; color: #fff; font-size: 0.9rem;">
-          <button type="submit" class="btn btn-secondary" style="padding: 0.55rem 1rem; font-size: 0.85rem;">เข้าสู่ระบบ</button>
+          <input type="email" id="custom-google-email" placeholder="example@gmail.com" required style="flex: 1; padding: 0.65rem 0.9rem; background: rgba(255,255,255,0.05); border: 1px solid var(--border-glass); border-radius: 8px; color: #fff; font-size: 0.95rem;">
+          <button type="submit" class="btn btn-primary" style="padding: 0.65rem 1.25rem; font-size: 0.9rem;">เข้าสู่ระบบ</button>
         </div>
       </form>
 
       <!-- Toggle Google Client ID Config Box -->
-      <div style="margin-top: 1rem; text-align: right;">
+      <div style="margin-top: 1.25rem; text-align: right;">
         <button type="button" id="toggle-config-clientid-btn" style="background: none; border: none; color: var(--text-dim); font-size: 0.75rem; cursor: pointer; text-decoration: underline;">
           ⚙️ ตั้งค่า Google Client ID (สำหรับเชื่อมต่อ Google Cloud Console จริง)
         </button>
@@ -117,14 +84,14 @@
 
   <!-- Admin Permission Denied Modal -->
   <div id="admin-denied-modal-overlay" class="modal-overlay" style="display: none;">
-    <div class="oauth-card animate-slide-up" style="max-width: 440px; text-align: center;">
+    <div class="oauth-card animate-slide-up" style="max-width: 460px; text-align: center;">
       <div style="font-size: 3rem; margin-bottom: 0.5rem;">🔒</div>
       <h3 style="color: var(--rose-danger); margin-bottom: 0.5rem;">สิทธิ์การเข้าถึงถูกปฏิเสธ (Access Denied)</h3>
-      <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.25rem;">
-        เฉพาะบัญชีผู้ดูแลระบบ <strong style="color: var(--gold-primary);">seree999@gmail.com</strong> เท่านั้นที่ได้รับอนุญาตให้เข้าใช้งานส่วนผู้จัดการระบบ
+      <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.25rem; line-height: 1.5;">
+        เฉพาะบัญชีผู้ดูแลระบบสูงสุด <strong style="color: var(--gold-primary);">674295049@parichat.skru.ac.th</strong> (Super Admin) เท่านั้นที่ได้รับอนุญาตให้เข้าใช้งานส่วนผู้จัดการระบบ
       </p>
       <div style="display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap;">
-        <button class="btn btn-primary" id="switch-to-admin-account-btn">เข้าสู่ระบบด้วย seree999@gmail.com</button>
+        <button class="btn btn-primary" id="relogin-google-btn">เข้าสู่ระบบด้วยบัญชีอื่น</button>
         <button class="btn btn-ghost" id="close-admin-denied-btn">ปิด</button>
       </div>
     </div>
