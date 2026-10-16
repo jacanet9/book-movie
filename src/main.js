@@ -2,7 +2,7 @@
 import confetti from 'canvas-confetti';
 import { bookingEngine } from './modules/bookingEngine.js';
 import { renderSeatMap } from './modules/seatMap.js';
-import { renderTicketPass } from './modules/ticketGenerator.js';
+import { renderTicketPass, renderMyTicketsList } from './modules/ticketGenerator.js';
 import { renderAdminPortal } from './modules/adminPortal.js';
 import { getAvailableDates } from './data/mockData.js';
 import { generateQRCodeUrl } from './utils/qrHelper.js';
@@ -180,9 +180,25 @@ function renderAuthNavbar() {
   }
 }
 
+// Get orders belonging to currently logged-in user
+function getUserOrders() {
+  if (authService.isAuthenticated()) {
+    const email = authService.currentUser.email.toLowerCase();
+    const userOrders = bookingEngine.orders.filter(
+      o => o.customer?.email?.toLowerCase() === email
+    );
+    if (userOrders.length === 0 && authService.isSuperAdmin()) {
+      return bookingEngine.orders;
+    }
+    return userOrders;
+  }
+  return [];
+}
+
 // Update Ticket Badge Count in Navbar
 function updateTicketCount() {
-  ticketCountBadge.textContent = bookingEngine.orders.length;
+  const myOrders = getUserOrders();
+  ticketCountBadge.textContent = myOrders.length;
 }
 
 // Render Hero Banner
@@ -281,6 +297,13 @@ function renderMovieCatalog() {
 
 // Open Booking & Seat Selection Modal
 function openBookingModal(movieId) {
+  // Enforce Google authentication before booking
+  if (!authService.isAuthenticated()) {
+    alert('⚠️ กรุณาเข้าสู่ระบบด้วยบัญชี Google ก่อนทำรายการจองตั๋วภาพยนตร์');
+    openOAuthModal();
+    return;
+  }
+
   bookingEngine.selectMovie(movieId);
   const movie = bookingEngine.selectedMovie;
   if (!movie) return;
@@ -390,6 +413,13 @@ function updateBookingCheckoutBar() {
 
 // Open Checkout Modal
 async function openCheckoutModal() {
+  // Enforce Google authentication before checkout
+  if (!authService.isAuthenticated()) {
+    alert('⚠️ กรุณาเข้าสู่ระบบด้วยบัญชี Google ก่อนดำเนินการชำระเงิน');
+    openOAuthModal();
+    return;
+  }
+
   const summary = bookingEngine.getPricingSummary();
   const movie = bookingEngine.selectedMovie;
   const showtime = bookingEngine.selectedShowtime;
@@ -434,12 +464,18 @@ async function openCheckoutModal() {
 
 // Complete Order & Trigger Confetti
 function handleConfirmPayment(paymentMethod) {
+  if (!authService.isAuthenticated()) {
+    alert('⚠️ กรุณาเข้าสู่ระบบด้วยบัญชี Google ก่อนยืนยันการชำระเงิน');
+    openOAuthModal();
+    return;
+  }
+
   try {
     const user = authService.currentUser;
     const order = bookingEngine.completeBooking({
       paymentMethod,
-      customerName: user ? user.name : 'ผู้จองตั๋วภาพยนตร์',
-      customerEmail: user ? user.email : 'booking@cineverse.com',
+      customerName: user.name,
+      customerEmail: user.email,
       customerPhone: '081-234-5678'
     });
 
@@ -453,8 +489,13 @@ function handleConfirmPayment(paymentMethod) {
       origin: { y: 0.6 }
     });
 
-    // Render E-Ticket Pass
-    renderTicketPass(order, ticketModalContainer);
+    // Render E-Ticket Pass with back option to all booked tickets
+    const myOrders = getUserOrders();
+    renderTicketPass(order, ticketModalContainer, {
+      fromList: true,
+      allOrders: myOrders,
+      totalCount: myOrders.length
+    });
   } catch (err) {
     alert("เกิดข้อผิดพลาดในการยืนยันคำสั่งซื้อ: " + err.message);
   }
@@ -577,14 +618,15 @@ function setupEventListeners() {
     openOAuthModal();
   });
 
-  // My Tickets navigation
+  // My Tickets navigation (Shows ALL booked tickets)
   navMyTicketsBtn.addEventListener('click', () => {
-    if (bookingEngine.orders.length === 0) {
-      alert("คุณยังไม่มีประวัติการจองตั๋วในระบบ");
+    if (!authService.isAuthenticated()) {
+      alert("⚠️ กรุณาเข้าสู่ระบบด้วยบัญชี Google เพื่อดูรายการตั๋วภาพยนตร์ของคุณ");
+      openOAuthModal();
       return;
     }
-    const latestOrder = bookingEngine.orders[0];
-    renderTicketPass(latestOrder, ticketModalContainer);
+    const myOrders = getUserOrders();
+    renderMyTicketsList(myOrders, ticketModalContainer);
   });
 
   // Genre Filters

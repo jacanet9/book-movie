@@ -1156,6 +1156,93 @@ h1, h2, h3, h4, .font-display {
   flex-wrap: wrap;
 }
 
+/* My Tickets Passbook Styles */
+.my-tickets-modal-card {
+  max-width: 900px;
+  width: 100%;
+  background: var(--bg-card);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-lg);
+  padding: 1.75rem;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-2xl);
+}
+
+.my-tickets-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border-glass);
+}
+
+.my-tickets-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
+.my-ticket-item-card {
+  display: flex;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  gap: 1.25rem;
+  align-items: center;
+  transition: all 0.2s;
+}
+
+.my-ticket-item-card:hover {
+  border-color: rgba(245, 158, 11, 0.4);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.my-ticket-thumb {
+  width: 80px;
+  height: 115px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid var(--border-glass);
+  flex-shrink: 0;
+}
+
+.my-ticket-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.my-ticket-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: flex-end;
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .my-ticket-item-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .my-ticket-actions {
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.5rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+  }
+}
+
 /* Admin Portal Styles */
 .admin-wrapper {
   max-width: 1300px;
