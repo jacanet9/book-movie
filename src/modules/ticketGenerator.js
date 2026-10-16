@@ -90,13 +90,18 @@ export async function renderTicketPass(order, containerElement) {
           </div>
         </div>
 
+        <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-glass); border-radius: var(--radius-md); padding: 0.85rem 1.25rem; margin-top: 1rem; font-size: 0.85rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.75rem;">
+          <span style="font-size: 1.25rem;">ℹ️</span>
+          <span>กรุณาแสดงบัตร E-Ticket นี้ผ่านหน้าจอมือถือแก่เจ้าหน้าที่ ณ ประตูทางเข้าโรงภาพยนตร์ก่อนรอบฉาย 15 นาที</span>
+        </div>
+
         <!-- Ticket Action Buttons -->
         <div class="ticket-footer-actions">
           <button class="btn btn-secondary print-ticket-btn">
             <span>🖨️ พิมพ์ตั๋ว / บันทึก PDF</span>
           </button>
-          <button class="btn btn-primary test-scanner-btn" data-ref="${order.bookingRef}">
-            <span>📱 จำลองให้เจ้าหน้าที่สแกนตรวจตั๋ว</span>
+          <button class="btn btn-primary add-calendar-btn">
+            <span>📅 บันทึกลงปฏิทิน (.ics)</span>
           </button>
           <button class="btn btn-ghost close-ticket-bottom-btn">กลับสู่หน้าหลัก</button>
         </div>
@@ -115,12 +120,28 @@ export async function renderTicketPass(order, containerElement) {
     window.print();
   });
 
-  containerElement.querySelector('.test-scanner-btn')?.addEventListener('click', (e) => {
-    const ref = e.currentTarget.dataset.ref;
-    const res = bookingEngine.checkInTicket(ref);
-    alert(res.message);
-    if (res.success) {
-      renderTicketPass(res.order, containerElement);
-    }
+  // Download real iCalendar invite (.ics)
+  containerElement.querySelector('.add-calendar-btn')?.addEventListener('click', () => {
+    const icsContent = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//CINEPASS//Movie Ticket//TH',
+      'BEGIN:VEVENT',
+      `SUMMARY:🎬 ชมภาพยนตร์ ${order.movieTitle} (${order.hall})`,
+      `DESCRIPTION:ตั๋วชมภาพยนตร์ CINEPASS\\nรหัสการจอง: ${order.bookingRef}\\nที่นั่ง: ${order.seats.map(s => s.id).join(', ')}\\nโรงภาพยนตร์: ${order.cinemaName} (${order.hall})`,
+      `LOCATION:${order.cinemaName}`,
+      'STATUS:CONFIRMED',
+      'END:VEVENT',
+      'END:VCALENDAR'
+    ].join('\r\n');
+
+    const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `CINEPASS-${order.bookingRef}.ics`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   });
 }

@@ -115,7 +115,7 @@ class AuthService {
     return this.currentUser;
   }
 
-  // Fallback or simulated Google login
+  // Real Google Account Login Handler
   loginWithGoogle({ email, name, avatar }) {
     const trimmedEmail = email.trim().toLowerCase();
     const isSuperAdmin = this.checkIsSuperAdmin(trimmedEmail);

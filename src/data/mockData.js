@@ -51,6 +51,23 @@ export const INITIAL_MOVIES = [
     director: "Renier Benaney",
     cast: "Voice: Holimian Thnagron, Jarkg Loschom",
     releaseDate: "2026-10-15"
+  },
+  {
+    id: "mov-04",
+    title: "THE LAST HORIZON",
+    thaiTitle: "ขอบฟ้าไร้สิ้นสุด: ภารกิจกู้วิกฤตจักรวาล",
+    poster: "/posters/horizon.jpg",
+    backdrop: "/posters/horizon.jpg",
+    genre: ["Sci-Fi", "Drama", "Adventure"],
+    duration: 165,
+    rating: "13+",
+    imdbScore: 9.3,
+    format: ["IMAX Laser 70mm", "Dolby Atmos"],
+    status: "NOW_SHOWING",
+    synopsis: "เมื่อทรัพยากรบนโลกกำลังจะหมดสิ้น ทีมสำรวจอวกาศต้องเดินทางผ่านหลุมดำมหึมาเพื่อค้นหาดาวเคราะห์ดวงใหม่ที่มีสภาพแวดล้อมเหมาะสมต่อการดำรงชีวิตของมนุษยชาติ",
+    director: "Eliza Vance",
+    cast: "Anya Sharma, Caleb Cross, Elias Thorne",
+    releaseDate: "2026-10-18"
   }
 ];
 

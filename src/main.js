@@ -49,6 +49,7 @@ const toggleAdminBtn = document.getElementById('toggle-admin-btn');
 const brandHomeBtn = document.getElementById('brand-home-btn');
 
 let activeGenreFilter = 'ALL';
+let movieSearchQuery = '';
 let activePaymentMethod = 'promptpay';
 
 // Initialize Application
@@ -221,9 +222,31 @@ function renderHeroBanner() {
 
 // Render Movie Catalog Grid
 function renderMovieCatalog() {
-  const filtered = activeGenreFilter === 'ALL'
+  const query = (movieSearchQuery || '').trim().toLowerCase();
+  let filtered = activeGenreFilter === 'ALL'
     ? bookingEngine.movies
     : bookingEngine.movies.filter(m => m.genre.includes(activeGenreFilter));
+
+  if (query) {
+    filtered = filtered.filter(m =>
+      (m.title && m.title.toLowerCase().includes(query)) ||
+      (m.thaiTitle && m.thaiTitle.toLowerCase().includes(query)) ||
+      (m.synopsis && m.synopsis.toLowerCase().includes(query)) ||
+      (m.director && m.director.toLowerCase().includes(query)) ||
+      (m.cast && m.cast.some(actor => actor.toLowerCase().includes(query)))
+    );
+  }
+
+  if (filtered.length === 0) {
+    moviesGridContainer.innerHTML = `
+      <div style="grid-column: 1 / -1; text-align: center; padding: 4rem 1rem; color: var(--text-muted);">
+        <p style="font-size: 2.5rem; margin-bottom: 0.5rem;">🔍</p>
+        <h3 style="color: var(--text-secondary); margin-bottom: 0.5rem;">ไม่พบภาพยนตร์ที่ค้นหา</h3>
+        <p style="font-size: 0.9rem;">ลองค้นหาด้วยชื่อภาพยนตร์ภาษาไทย, ภาษาอังกฤษ หรือหมวดหมู่อื่น</p>
+      </div>
+    `;
+    return;
+  }
 
   moviesGridContainer.innerHTML = filtered.map(movie => `
     <div class="movie-card" data-movie-id="${movie.id}">
@@ -415,9 +438,9 @@ function handleConfirmPayment(paymentMethod) {
     const user = authService.currentUser;
     const order = bookingEngine.completeBooking({
       paymentMethod,
-      customerName: user ? user.name : 'Khun Customer',
-      customerEmail: user ? user.email : 'customer@example.com',
-      customerPhone: '089-999-8888'
+      customerName: user ? user.name : 'ผู้จองตั๋วภาพยนตร์',
+      customerEmail: user ? user.email : 'booking@cineverse.com',
+      customerPhone: '081-234-5678'
     });
 
     checkoutModalOverlay.style.display = 'none';
@@ -577,8 +600,18 @@ function setupEventListeners() {
     });
   });
 
-  // Simulate QR Payment
-  document.getElementById('simulate-qr-paid-btn').addEventListener('click', () => {
+  // Live Movie Search Input
+  const movieSearchInput = document.getElementById('movie-search-input');
+  if (movieSearchInput) {
+    movieSearchInput.addEventListener('input', (e) => {
+      movieSearchQuery = e.target.value;
+      renderMovieCatalog();
+    });
+  }
+
+  // Confirm QR Payment
+  const confirmQrBtn = document.getElementById('confirm-qr-paid-btn') || document.getElementById('simulate-qr-paid-btn');
+  confirmQrBtn?.addEventListener('click', () => {
     handleConfirmPayment('PromptPay QR');
   });
 

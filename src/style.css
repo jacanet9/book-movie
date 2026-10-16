@@ -341,6 +341,38 @@ h1, h2, h3, h4, .font-display {
   border-color: var(--gold-primary);
 }
 
+/* Movie Search Input Box */
+.search-box-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-glass);
+  border-radius: 9999px;
+  padding: 0.4rem 0.9rem;
+  transition: all 0.2s;
+}
+
+.search-box-wrap:focus-within {
+  border-color: var(--gold-primary);
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 12px var(--gold-glow);
+}
+
+.search-input {
+  background: none;
+  border: none;
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  outline: none;
+  width: 170px;
+}
+
+.search-input::placeholder {
+  color: var(--text-dim);
+}
+
 .movies-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
