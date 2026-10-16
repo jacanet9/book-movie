@@ -142,7 +142,7 @@ export function generateInitialShowtimes() {
 }
 
 // Generate realistic occupied seats for seed
-function generateRandomOccupiedSeats() {
+export function generateRandomOccupiedSeats() {
   const sampleSeats = ["C4", "C5", "C6", "D5", "D6", "E7", "E8", "F3", "F4", "B5", "B6"];
   const count = Math.floor(Math.random() * 6) + 3;
   return sampleSeats.slice(0, count);

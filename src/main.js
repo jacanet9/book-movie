@@ -390,10 +390,12 @@ function openBookingModal(movieId) {
 
 // Render Showtime Slots
 function renderShowtimeSlots() {
-  const matchingShowtimes = bookingEngine.showtimes.filter(
-    st => st.movieId === bookingEngine.selectedMovie.id &&
-          st.cinemaId === bookingEngine.selectedCinemaId &&
-          st.date === bookingEngine.selectedDate
+  if (!bookingEngine.selectedMovie) return;
+
+  const matchingShowtimes = bookingEngine.getShowtimes(
+    bookingEngine.selectedMovie.id,
+    bookingEngine.selectedCinemaId,
+    bookingEngine.selectedDate
   );
 
   if (matchingShowtimes.length === 0) {

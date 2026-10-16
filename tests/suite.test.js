@@ -301,3 +301,22 @@ test('6. AI Chatbot (CINEBOT) - Domain-Specific Query & Scope Guard', async (t) 
     assert.ok(resCode.text.includes('เฉพาะ'));
   });
 });
+
+test('7. Showtimes Availability & Auto-Recovery for THE LAST HORIZON', async (t) => {
+  await t.test('Guarantees showtimes for mov-04 across all cinemas and dates', () => {
+    const todayStr = new Date().toISOString().split('T')[0];
+    const showtimes = bookingEngine.getShowtimes('mov-04', 'cinema-02', todayStr);
+    assert.ok(showtimes.length > 0, 'Should return showtimes for mov-04 at Icon Cineconic');
+    assert.equal(showtimes[0].movieId, 'mov-04');
+    assert.equal(showtimes[0].cinemaId, 'cinema-02');
+    assert.ok(showtimes[0].time);
+    assert.ok(showtimes[0].hall);
+  });
+
+  await t.test('Catalog includes THE LAST HORIZON in bookingEngine.movies', () => {
+    const horizon = bookingEngine.movies.find(m => m.id === 'mov-04');
+    assert.ok(horizon, 'THE LAST HORIZON must exist in bookingEngine.movies');
+    assert.equal(horizon.title, 'THE LAST HORIZON');
+  });
+});
+

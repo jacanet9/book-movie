@@ -1,15 +1,28 @@
 // Booking Engine & State Manager
-import { INITIAL_MOVIES, CINEMAS, SEAT_PRICING, generateInitialShowtimes } from '../data/mockData.js';
+import { INITIAL_MOVIES, CINEMAS, SEAT_PRICING, generateInitialShowtimes, getAvailableDates, generateRandomOccupiedSeats } from '../data/mockData.js';
 
 class BookingEngine {
   constructor() {
-    this.movies = this.loadFromStorage('mb_movies', INITIAL_MOVIES);
+    // Merge INITIAL_MOVIES with stored movies to ensure new catalog movies always appear
+    const storedMovies = this.loadFromStorage('mb_movies', []);
+    const movieMap = new Map();
+    INITIAL_MOVIES.forEach(m => movieMap.set(m.id, m));
+    storedMovies.forEach(m => {
+      const existing = movieMap.get(m.id);
+      movieMap.set(m.id, existing ? { ...existing, ...m } : m);
+    });
+    this.movies = Array.from(movieMap.values());
+    this.saveToStorage('mb_movies', this.movies);
+
     this.cinemas = CINEMAS;
     this.showtimes = this.loadFromStorage('mb_showtimes', null);
     if (!this.showtimes || this.showtimes.length === 0) {
       this.showtimes = generateInitialShowtimes();
-      this.saveToStorage('mb_showtimes', this.showtimes);
     }
+    // Always ensure showtimes exist for all movies, cinemas and upcoming dates
+    this.ensureShowtimes();
+    this.saveToStorage('mb_showtimes', this.showtimes);
+
     this.orders = this.loadFromStorage('mb_orders', []);
 
     // Current Booking Session
@@ -26,6 +39,99 @@ class BookingEngine {
     
     // Listeners for UI reactivity
     this.listeners = [];
+  }
+
+  // Ensure that all movies have showtimes across all cinemas and available dates
+  ensureShowtimes() {
+    const dates = getAvailableDates();
+    if (!this.showtimes) this.showtimes = [];
+    const existingKeys = new Set(
+      this.showtimes.map(st => `${st.movieId}__${st.cinemaId}__${st.date}`)
+    );
+
+    let addedCount = 0;
+    let idCounter = Date.now();
+
+    this.movies.forEach(movie => {
+      this.cinemas.forEach(cinema => {
+        const halls = cinema.halls || ["Hall 1 (IMAX Laser)", "Hall 2 (Dolby Atmos)"];
+        const times = [
+          { time: "11:30", hall: halls[0] || "Hall 1 (IMAX Laser)", audio: "EN/TH", format: "IMAX 3D" },
+          { time: "14:15", hall: halls[0] || "Hall 1 (IMAX Laser)", audio: "EN/TH", format: "IMAX 3D" },
+          { time: "17:00", hall: halls[0] || "Hall 1 (IMAX Laser)", audio: "EN/TH", format: "IMAX 3D" },
+          { time: "19:45", hall: halls[1] || halls[0], audio: "TH", format: "Dolby Atmos" },
+          { time: "22:15", hall: halls[1] || halls[0], audio: "EN/TH", format: "Dolby Atmos" }
+        ];
+
+        dates.forEach(d => {
+          const key = `${movie.id}__${cinema.id}__${d.dateStr}`;
+          if (!existingKeys.has(key)) {
+            times.forEach(t => {
+              this.showtimes.push({
+                id: `st-${idCounter++}`,
+                movieId: movie.id,
+                cinemaId: cinema.id,
+                cinemaName: cinema.name,
+                hall: t.hall,
+                date: d.dateStr,
+                time: t.time,
+                audio: t.audio,
+                format: t.format,
+                occupiedSeats: generateRandomOccupiedSeats()
+              });
+            });
+            existingKeys.add(key);
+            addedCount++;
+          }
+        });
+      });
+    });
+
+    if (addedCount > 0) {
+      this.saveToStorage('mb_showtimes', this.showtimes);
+    }
+  }
+
+  // Get showtimes with guaranteed fallback so a movie/cinema/date combination is never empty
+  getShowtimes(movieId, cinemaId, date) {
+    if (!movieId || !cinemaId || !date) return [];
+    
+    let matches = this.showtimes.filter(
+      st => st.movieId === movieId &&
+            st.cinemaId === cinemaId &&
+            st.date === date
+    );
+
+    if (matches.length === 0) {
+      const cinema = this.cinemas.find(c => c.id === cinemaId) || this.cinemas[0];
+      const halls = cinema.halls || ["Hall 1 (IMAX Laser)", "Hall 2 (Dolby Atmos)"];
+      const times = [
+        { time: "11:30", hall: halls[0] || "Hall 1 (IMAX Laser)", audio: "EN/TH", format: "IMAX 3D" },
+        { time: "14:15", hall: halls[0] || "Hall 1 (IMAX Laser)", audio: "EN/TH", format: "IMAX 3D" },
+        { time: "17:00", hall: halls[0] || "Hall 1 (IMAX Laser)", audio: "EN/TH", format: "IMAX 3D" },
+        { time: "19:45", hall: halls[1] || halls[0], audio: "TH", format: "Dolby Atmos" },
+        { time: "22:15", hall: halls[1] || halls[0], audio: "EN/TH", format: "Dolby Atmos" }
+      ];
+
+      const newSlots = times.map((t, idx) => ({
+        id: `st-gen-${Date.now()}-${idx}`,
+        movieId,
+        cinemaId: cinema.id,
+        cinemaName: cinema.name,
+        hall: t.hall,
+        date,
+        time: t.time,
+        audio: t.audio,
+        format: t.format,
+        occupiedSeats: generateRandomOccupiedSeats()
+      }));
+
+      this.showtimes.push(...newSlots);
+      this.saveToStorage('mb_showtimes', this.showtimes);
+      matches = newSlots;
+    }
+
+    return matches;
   }
 
   loadFromStorage(key, defaultValue) {
@@ -59,10 +165,11 @@ class BookingEngine {
   }
 
   selectMovie(movieId) {
-    this.selectedMovie = this.movies.find(m => m.id === movieId) || null;
+    this.selectedMovie = this.movies.find(m => m.id === movieId) || INITIAL_MOVIES.find(m => m.id === movieId) || null;
     this.selectedShowtime = null;
     this.selectedSeats = [];
     this.cancelHold();
+    this.ensureShowtimes();
     this.notify('MOVIE_SELECTED', this.selectedMovie);
   }
 
