@@ -119,8 +119,6 @@ function initApp() {
 // Open Google OAuth Modal & Initialize Google Identity Services
 function openOAuthModal() {
   oauthModalOverlay.style.display = 'flex';
-  const clientIdInput = document.getElementById('google-client-id-input');
-  if (clientIdInput) clientIdInput.value = authService.googleClientId;
 
   authService.initGoogleIdentityButton('real-google-btn-container', (user) => {
     oauthModalOverlay.style.display = 'none';
@@ -587,26 +585,6 @@ function setupEventListeners() {
     customerPortalView.style.display = 'none';
     adminPortalView.style.display = 'block';
     renderAdminPortal(adminPortalView);
-  });
-
-  // Toggle Google Client ID Config Box
-  document.getElementById('toggle-config-clientid-btn')?.addEventListener('click', () => {
-    const box = document.getElementById('google-config-box');
-    if (box) box.style.display = box.style.display === 'none' ? 'block' : 'none';
-  });
-
-  // Save Google Client ID
-  document.getElementById('save-google-client-id-btn')?.addEventListener('click', () => {
-    const input = document.getElementById('google-client-id-input');
-    if (input && input.value.trim()) {
-      authService.setClientId(input.value.trim());
-      showToast('บันทึก Google Client ID เรียบร้อยแล้ว กำลังเชื่อมต่อ...', 'success');
-      authService.initGoogleIdentityButton('real-google-btn-container', (user) => {
-        oauthModalOverlay.style.display = 'none';
-      });
-    } else {
-      showToast('กรุณาระบุ Google Client ID ให้ถูกต้อง', 'warning');
-    }
   });
 
   // Google OAuth Modal Listeners

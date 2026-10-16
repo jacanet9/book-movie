@@ -61,24 +61,6 @@
           <button type="submit" class="btn btn-primary" style="padding: 0.65rem 1.25rem; font-size: 0.9rem;">เข้าสู่ระบบ</button>
         </div>
       </form>
-
-      <!-- Toggle Google Client ID Config Box -->
-      <div style="margin-top: 1.25rem; text-align: right;">
-        <button type="button" id="toggle-config-clientid-btn" style="background: none; border: none; color: var(--text-dim); font-size: 0.75rem; cursor: pointer; text-decoration: underline;">
-          ⚙️ ตั้งค่า Google Client ID (สำหรับเชื่อมต่อ Google Cloud Console จริง)
-        </button>
-      </div>
-
-      <div id="google-config-box" style="display: none; margin-top: 0.75rem; padding: 1rem; background: rgba(0,0,0,0.4); border: 1px solid var(--border-glass); border-radius: 8px; font-size: 0.8rem;">
-        <strong style="color: var(--cyan-accent); display: block; margin-bottom: 0.3rem;">ตั้งค่า Google OAuth Client ID:</strong>
-        <p class="text-muted" style="margin-bottom: 0.5rem; line-height: 1.4;">
-          หากคุณสร้าง OAuth Client ID จาก <a href="https://console.cloud.google.com/apis/credentials" target="_blank" style="color: var(--gold-primary);">Google Cloud Console</a> แล้ว สามารถนำ Client ID มาวางเพื่อเปิดใช้งานปุ่ม Google Sign-In จริงได้ทันที
-        </p>
-        <div style="display: flex; gap: 0.5rem;">
-          <input type="text" id="google-client-id-input" placeholder="เช่น 123456789-abc.apps.googleusercontent.com" style="flex: 1; padding: 0.5rem; background: rgba(255,255,255,0.05); border: 1px solid var(--border-glass); border-radius: 6px; color: #fff; font-size: 0.8rem; font-family: monospace;">
-          <button type="button" id="save-google-client-id-btn" class="btn btn-primary" style="padding: 0.5rem 0.8rem; font-size: 0.8rem;">บันทึก</button>
-        </div>
-      </div>
     </div>
   </div>
 
