@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CINEPASS — ระบบจองตั๋วภาพยนตร์ออนไลน์ระดับพรีเมียม</title>
+  <meta name="description" content="ระบบจองตั๋วภาพยนตร์ออนไลน์ รองรับการเลือกที่นั่งแบบ Interactive ผังที่นั่งสมจริง ระบบล็อกที่นั่งชั่วคราว 10 นาที ชำระเงินผ่าน PromptPay QR และออก E-Ticket พร้อม QR Code ตรวจสอบได้">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎬</text></svg>">
+  <link rel="stylesheet" href="./src/style.css">
+</head>
+<body>
+  <!-- Header / Navigation -->
+  <header class="site-header">
+    <div class="nav-container">
+      <div class="brand-wrapper" id="brand-home-btn">
+        <span class="brand-icon">🎬</span>
+        <span class="brand-name">CINE<span>PASS</span></span>
+      </div>
+
+      <nav class="nav-links">
+        <button class="nav-btn active" id="nav-movies-btn">ภาพยนตร์</button>
+        <button class="nav-btn" id="nav-cinemas-btn">สาขาโรงหนัง</button>
+        <button class="nav-btn" id="nav-my-tickets-btn">ตั๋วของฉัน (<span id="ticket-count-badge">0</span>)</button>
+        <button class="nav-btn nav-badge-btn" id="toggle-admin-btn">⚡ ผู้จัดการระบบ (Admin)</button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Customer Portal View -->
+  <main id="customer-portal-view">
+    <!-- Featured Hero Section -->
+    <section class="hero-section" id="hero-banner-container">
+      <!-- Injected by JavaScript -->
+    </section>
+
+    <!-- Movie Catalog Section -->
+    <section class="catalog-section">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">กำลังเข้าฉาย (Now Showing)</h2>
+          <p class="text-muted">เลือกภาพยนตร์ที่คุณต้องการชม และจองที่นั่งได้ทันที</p>
+        </div>
+
+        <div class="filter-chips">
+          <button class="chip active" data-genre="ALL">ทั้งหมด</button>
+          <button class="chip" data-genre="Action">Action</button>
+          <button class="chip" data-genre="Sci-Fi">Sci-Fi</button>
+          <button class="chip" data-genre="Horror">Horror</button>
+          <button class="chip" data-genre="Animation">Animation</button>
+        </div>
+      </div>
+
+      <div class="movies-grid" id="movies-grid-container">
+        <!-- Injected by JavaScript -->
+      </div>
+    </section>
+  </main>
+
+  <!-- Admin Portal View Container (Toggled via Admin button) -->
+  <div id="admin-portal-view" style="display: none;"></div>
+
+  <!-- Booking & Seat Selection Modal -->
+  <div id="booking-modal-overlay" class="modal-overlay" style="display: none;">
+    <div class="booking-modal-card animate-slide-up">
+      <div class="modal-header">
+        <div id="modal-movie-info">
+          <!-- Injected by JavaScript -->
+        </div>
+        <button class="modal-close-btn" id="close-booking-modal-btn">✕</button>
+      </div>
+
+      <!-- Showtime Picker Controls -->
+      <div class="showtime-picker-section">
+        <div class="cinema-selector-row">
+          <label class="text-muted">เลือกสาขา:</label>
+          <select id="cinema-select" class="cinema-select-dropdown">
+            <!-- Injected by JavaScript -->
+          </select>
+        </div>
+
+        <label class="text-muted" style="display: block; margin-bottom: 0.5rem;">เลือกวันที่:</label>
+        <div class="date-chips-row" id="date-chips-container">
+          <!-- Injected by JavaScript -->
+        </div>
+
+        <label class="text-muted" style="display: block; margin-bottom: 0.5rem;">เลือกรอบฉาย:</label>
+        <div class="showtimes-slots-grid" id="showtimes-slots-container">
+          <!-- Injected by JavaScript -->
+        </div>
+      </div>
+
+      <!-- 10-Minute Seat Hold Live Banner -->
+      <div id="hold-timer-container" style="display: none;">
+        <div class="hold-timer-banner">
+          <div class="hold-timer-text">
+            <span>⏳</span>
+            <div>
+              <strong>ระบบกำลังล็อกที่นั่งให้คุณชั่วคราว</strong>
+              <div class="text-muted" style="font-size: 0.8rem;">กรุณาทำรายการและชำระเงินก่อนหมดเวลาเพื่อป้องกันที่นั่งหลุด</div>
+            </div>
+          </div>
+          <div class="hold-countdown" id="hold-countdown-timer">10:00</div>
+        </div>
+      </div>
+
+      <!-- Interactive Seat Map Container -->
+      <div id="seat-map-container">
+        <!-- Injected by seatMap.js -->
+      </div>
+
+      <!-- Sticky Checkout Bar -->
+      <div class="booking-checkout-bar" id="booking-checkout-bar">
+        <div class="pricing-preview">
+          <span class="selected-seats-badge" id="selected-seats-text">ยังไม่ได้เลือกที่นั่ง</span>
+          <div class="total-amount-tag" id="total-amount-text">฿0</div>
+        </div>
+
+        <div style="display: flex; gap: 0.75rem;">
+          <button class="btn btn-ghost" id="cancel-selection-btn">ยกเลิก</button>
+          <button class="btn btn-primary" id="proceed-checkout-btn" disabled>
+            <span>ดำเนินการจอง & ชำระเงิน →</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Checkout & Payment Modal -->
+  <div id="checkout-modal-overlay" class="modal-overlay" style="display: none;">
+    <div class="booking-modal-card animate-slide-up" style="max-width: 800px;">
+      <div class="modal-header">
+        <div>
+          <h3 style="font-size: 1.3rem;">💳 ชำระเงินค่าตั๋วภาพยนตร์</h3>
+          <span class="text-muted" style="font-size: 0.85rem;">ระบบชำระเงินปลอดภัย รองรับ PromptPay QR และบัตรเดบิต/เครดิต</span>
+        </div>
+        <button class="modal-close-btn" id="close-checkout-modal-btn">✕</button>
+      </div>
+
+      <div class="checkout-grid">
+        <!-- Order Summary Column -->
+        <div class="order-summary-box">
+          <h4 style="margin-bottom: 1rem;">สรุปรายการสั่งซื้อ</h4>
+          <div id="checkout-order-summary">
+            <!-- Injected by JavaScript -->
+          </div>
+        </div>
+
+        <!-- Payment Form Column -->
+        <div class="payment-method-box">
+          <div class="payment-options-tabs">
+            <button class="payment-tab-btn active" data-pay="promptpay">
+              <span>📱 PromptPay QR</span>
+            </button>
+            <button class="payment-tab-btn" data-pay="card">
+              <span>💳 บัตรเครดิต/เดบิต</span>
+            </button>
+          </div>
+
+          <!-- PromptPay QR View -->
+          <div id="pay-view-promptpay" class="qr-promptpay-card">
+            <div class="promptpay-logo">THAI QR PAYMENT / PROMPTPAY</div>
+            <img id="promptpay-qr-image" src="" alt="PromptPay QR Code" class="promptpay-qr-img">
+            <p style="font-size: 0.85rem; color: #475569;">สแกนเพื่อชำระเงินด้วย Mobile Banking ทุกธนาคาร</p>
+            <div style="margin-top: 1rem; width: 100%;">
+              <button class="btn btn-primary" id="simulate-qr-paid-btn" style="width: 100%;">
+                <span>✓ จำลองว่าลูกค้าสแกนจ่ายเงินสำเร็จ</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Card Form View -->
+          <form id="pay-view-card" class="card-form-grid" style="display: none;">
+            <div class="form-group">
+              <label>ชื่อผู้ถือบัตร:</label>
+              <input type="text" id="card-holder-name" placeholder="SOMCHAI DEE" required>
+            </div>
+            <div class="form-group">
+              <label>หมายเลขบัตรเครดิต/เดบิต:</label>
+              <input type="text" id="card-number" placeholder="4111 2222 3333 4444" maxlength="19" required>
+            </div>
+            <div style="display: flex; gap: 0.75rem;">
+              <div class="form-group" style="flex: 1;">
+                <label>วันหมดอายุ (MM/YY):</label>
+                <input type="text" id="card-exp" placeholder="12/28" maxlength="5" required>
+              </div>
+              <div class="form-group" style="flex: 1;">
+                <label>CVV / CVC:</label>
+                <input type="password" id="card-cvv" placeholder="•••" maxlength="4" required>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary" style="margin-top: 0.5rem;">
+              <span>ชำระเงินทันที</span>
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- E-Ticket Pass Modal Container -->
+  <div id="ticket-modal-container"></div>
+
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>
